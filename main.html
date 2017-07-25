@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+var plant;
+var plant2;
+var terrarium = [];
+var boardX = 720;
+var boardY = 720;
+var frame = 0;
+
+function grow(x) {
+	var xOffset = parseInt(Math.random()*vines[x].xOffset[0])+vines[x].xOffset[1];
+	var yOffset = parseInt(Math.random()*vines[x].yOffset[0])+vines[x].yOffset[1];
+	vines[x].x += xOffset*5;
+	vines[x].y += yOffset*5;
+	terrarium.push(new component(5, 5, newRGB(vines[x].color),	vines[x].x,vines[x].y));
+}
+
+var vines = [];
+vines[0] = {x:360,y:360,xOffset:[2,-1], yOffset:[3,-1],color:[255,0,0]};
+vines[1] = {x:360,y:360,xOffset:[3,-1],yOffset:[2,-1],color:[0,0,255]};
+vines[2] = {x:360,y:360,xOffset:[2,0],yOffset:[3,-1],color:[0,255,0]};
+vines[3] = {x:360,y:360,xOffset:[3,-1],yOffset:[2,0],color:[255,255,0]};
+
+function startGame() {
+	gameArea.start();
+}
+
+function newRGB(array) {
+	return "rgb(" + array[0] + "," + array[1] + "," + array[2] + ")";
+}
+
+var gameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = boardX;
+        this.canvas.height = boardY;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+		this.interval = setInterval(updateGameArea, 20);
+		window.addEventListener('keydown', function (e) {
+            gameArea.keys = (gameArea.keys || []);
+            gameArea.keys[e.keyCode] = true;
+        })
+        window.addEventListener('keyup', function (e) {
+            gameArea.keys[e.keyCode] = false; 
+        })
+    },
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function component(width, height, color, x, y, name) {
+	this.name = name;
+    this.width = width;
+    this.height = height;
+	this.speedX = 0;
+    this.speedY = 0;
+    this.x = x;
+    this.y = y;    
+    this.update = function() {
+        ctx = gameArea.context;
+		if (this.name == "text") {
+		  ctx.font = this.width + " " + this.height;
+		  ctx.fillStyle = color;
+		  ctx.fillText(this.text, this.x, this.y);
+		}
+		else {
+		  ctx.fillStyle = color;
+		  ctx.fillRect(this.x, this.y, this.width, this.height);
+		}
+    }
+	
+    this.newPos = function() {
+		this.x += this.speedX;
+		this.y += this.speedY;        
+	}
+} 
+
+function updateGameArea() {
+    gameArea.clear();
+	
+	for (var i = 0; i < terrarium.length; i++) {
+		terrarium[i].newPos();
+		terrarium[i].update();
+	}
+	
+	for (var i = 0; i < vines.length; i++)
+		grow(i);
+	frame++;
+}
+</script>
+
+</body>
+</html>
